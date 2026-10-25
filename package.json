@@ -1,0 +1,29 @@
+{
+	"name": "BlechBits-bmp-converter",
+	"version": "1.0.0",
+	"description": "Convert 128x64 1-bit BMP images to Korg display bitmap JavaScript arrays",
+	"main": "main.js",
+	"author": "Acey",
+	"scripts": {
+		"start": "electron .",
+		"build:win": "electron-builder --win portable"
+	},
+	"devDependencies": {
+		"electron": "^37.2.0",
+		"electron-builder": "^26.0.12"
+	},
+	"build": {
+		"appId": "de.zentryx.bitviewconverter",
+		"productName": "BlechBits BMP Converter",
+		"asar": true,
+		"win": {
+			"icon": "assets/icon.ico",
+			"target": [
+				"portable"
+			]
+		},
+		"directories": {
+			"output": "dist"
+		}
+	}
+}
