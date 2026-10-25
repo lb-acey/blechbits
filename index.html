@@ -227,7 +227,7 @@
 		<main>
 			<header>
 				<h1>BlechBits <span style="color: var(--accent2)">Converter</span></h1>
-				<p>1-Bit-BMP in JavaScript-Code für das Korg-Display umwandeln.</p>
+				<p>BMP-Bitmaps in Korg-Plugin-Code umwandeln und als fertige .blech-Datei exportieren.</p>
 			</header>
 
 			<section class="panel">
@@ -244,7 +244,14 @@
 			</section>
 
 			<section class="panel">
-				<h2>2. Optionen</h2>
+				<h2>2. Plugin-Name</h2>
+				<label for="pluginName">Name in korg.app(...):</label>
+				<input id="pluginName" type="text" value="BlechBits" maxlength="15" pattern="[A-Za-z0-9_]{1,15}" style="width:100%; margin-top:8px; padding:10px; border:1px solid var(--line); border-radius:8px; background:#0b0e14; color:var(--text);" />
+				<p class="hint">1–15 ASCII-Zeichen: Buchstaben, Zahlen und Unterstriche.</p>
+			</section>
+
+			<section class="panel">
+				<h2>3. Optionen</h2>
 				<div class="options">
 					<label
 						><input id="invert" type="checkbox" /> Farben invertieren</label
@@ -258,9 +265,8 @@
 					<h2 style="margin: 0">3. Generierter JavaScript-Code</h2>
 					<div class="actions">
 						<button id="copy" class="secondary" disabled>Code kopieren</button>
-						<button id="selectAll" class="secondary" disabled>
-							Alles markieren
-						</button>
+						<button id="selectAll" class="secondary" disabled>Alles markieren</button>
+						<button id="exportBlech" disabled>Als .blech exportieren</button>
 					</div>
 				</div>
 				<textarea

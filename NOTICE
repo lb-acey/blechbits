@@ -1,0 +1,87 @@
+# Where things come from
+
+## Under the AGPL
+
+`data/units.json` lists the parameters of each DSP unit and, more importantly,
+the order they sit in. It is generated from
+`src/hacktribe_editor/utils/ht_fx_ram_format.py` in
+
+  https://github.com/bangcorrupt/hacktribe-editor
+
+which is **AGPL-3.0**. Full text in `LICENSE`. The unit and field
+names are that project's reverse engineering work, not ours.
+
+The SysEx command numbers and the message header come from `scripts/e2sysex.py`
+in https://github.com/bangcorrupt/hacktribe, also AGPL-3.0. No code was copied;
+the codec here is a fresh implementation, and it differs from the reference on
+purpose (see docs/geraetekarte.md, "Zwei Fallen").
+
+The editor is licensed under the AGPL-3.0, see `LICENSE`. The standalone
+Python emulator has the separate licence described below.
+
+## From Electribe Studio
+
+The pattern container layout (header size, block size, the single pattern
+wrapper written by the device) and the rule to write only changed fields
+over the original bytes come from Electribe Studio, the pattern and sample
+editor by the same author. Its parser was the
+starting point for `src/pattern.mjs`; field offsets are taken from the
+device map instead of its constants.
+
+## Fonts
+
+The fonts in `site/design/fonts/` are IBM Plex Sans, IBM Plex Mono and Sora,
+under the SIL Open Font License 1.1. The licence texts sit next to them.
+
+## CodeMirror
+
+`site/vendor/codemirror.mjs` is a prebuilt bundle of CodeMirror 6, the code editor of the Plugins
+page, and of the small packages it needs (Lezer, style-mod, w3c-keyname, crelt, find-cluster-break),
+all by Marijn Haverbeke and others under the MIT licence. The licence texts are in
+`site/vendor/codemirror.LICENSE.txt`. The bundle is built from the npm packages by
+`npm run build:codemirror` (`tools/build-codemirror.mjs`), so the page loads nothing from the
+network. https://codemirror.net/
+
+## Doom
+
+`third_party/doom/` holds Doom for the card: `doom.bin` (the engine doomgeneric, GPL-2.0-or-later with
+`sha1.c` GPL-3.0-or-later, linked with our adapter, AGPL-3.0-or-later, and with newlib and libgcc),
+its complete source, and `doom.wad` (Freedoom 0.13.0, BSD). Each part keeps its own licence; the
+texts, credits and the build recipe are in that folder and the reasoning is in `docs/doom-lizenz.md`.
+The AGPL-3.0 of this repository covers our own code only. Not yet cleared for redistribution, see the
+review in that folder.
+
+## From Korg
+
+Nothing. No firmware, no pattern, no sample. What the parameters mean is
+summarised from Korg's public manuals for the same DSP units in its
+workstations, mainly the M3 Parameter Guide; nothing is reproduced from them.
+
+`*.VSB` is gitignored, and so is `.e2/`, which holds value ranges derived from
+whichever firmware you point the tools at. Bring your own image, patched with
+Hacktribe.
+
+## Ours
+
+Everything in `src/`, `bin/`, `test/`, `tools/` (except the emulator's licence below), `site/` (except `site/vendor/`, see above) and `data/` (except `data/units.json`, see above), including the design in `site/design/`. Every address, offset and rule was
+measured on a Korg Electribe 2 Sampler, firmware 2.02, unless a comment says
+otherwise.
+
+## Optional Unicorn emulator
+
+`tools/emu/runner.py` is an independent program under GPL-2.0-only, with
+the full licence in `tools/emu/LICENSE`. Node test orchestration and the
+editor remain AGPL-3.0-only. Node invokes the program by command line and
+reads a JSON result; Unicorn is never loaded in the Node/browser process.
+
+The tool requires the Python binding `unicorn==2.1.4`, installed separately
+by the user. Unicorn Engine, by Nguyen Anh Quynh and contributors, is
+published under GPLv2. Its Python binding identifies itself as BSD-licensed;
+that metadata does not relicense the bundled native engine. Upstream source
+and licence notices: https://github.com/unicorn-engine/unicorn/tree/2.1.4
+
+No Unicorn code or binaries are redistributed in this repository or the
+site build. If an installer later redistributes the engine, it must preserve
+the upstream notices and satisfy GPLv2 source-distribution obligations.
+The Python program's GPLv2 licence avoids assuming GPLv2-only and AGPLv3
+are compatible within a linked program. No Korg data is included.

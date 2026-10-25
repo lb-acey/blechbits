@@ -1,7 +1,9 @@
 const invertInput = document.getElementById("invert");
+const pluginNameInput = document.getElementById("pluginName");
 const convertButton = document.getElementById("convert");
 const copyButton = document.getElementById("copy");
 const selectAllButton = document.getElementById("selectAll");
+const exportBlechButton = document.getElementById("exportBlech");
 const output = document.getElementById("output");
 const status = document.getElementById("status");
 let selectedFile = null;
@@ -21,6 +23,7 @@ bitmapInput.addEventListener("change", () => {
 	output.value = "";
 	copyButton.disabled = true;
 	selectAllButton.disabled = true;
+	exportBlechButton.disabled = true;
 	status.classList.remove("error");
 	status.textContent = selectedFile
 		? "Datei ausgewählt. Du kannst sie jetzt konvertieren."
@@ -31,23 +34,47 @@ convertButton.addEventListener("click", async () => {
 	if (!selectedFile) return;
 	try {
 		const buffer = await selectedFile.arrayBuffer();
+		const pluginName = pluginNameInput.value.trim();
+		if (!/^[A-Za-z0-9_]{1,15}$/.test(pluginName)) {
+			throw new Error("Der Plugin-Name muss 1–15 Zeichen lang sein und darf nur ASCII-Buchstaben, Zahlen und Unterstriche enthalten.");
+		}
 		const code = convertBmpToKorgCode(
 			new Uint8Array(buffer),
 			invertInput.checked,
+			pluginName,
 		);
 		output.value = code;
 		copyButton.disabled = false;
 		selectAllButton.disabled = false;
+		exportBlechButton.disabled = false;
 		status.classList.remove("error");
 		status.textContent = "Konvertierung erfolgreich.";
 	} catch (error) {
 		output.value = "";
 		copyButton.disabled = true;
 		selectAllButton.disabled = true;
+		exportBlechButton.disabled = true;
 		status.classList.add("error");
 		status.textContent =
 			error.message || "Die Bitmap konnte nicht konvertiert werden.";
 	}
+});
+
+exportBlechButton.addEventListener("click", async () => {
+  if (!output.value.trim()) return;
+  try {
+    const pluginName = pluginNameInput.value.trim();
+    const result = await window.blechBits.compileAndSave(output.value, pluginName);
+    if (result.canceled) {
+      status.textContent = "Export abgebrochen.";
+      return;
+    }
+    status.classList.remove("error");
+    status.textContent = `Fertige .blech-Datei gespeichert (${result.bytes} Bytes).`;
+  } catch (error) {
+    status.classList.add("error");
+    status.textContent = error.message || "Kompilierung fehlgeschlagen.";
+  }
 });
 
 copyButton.addEventListener("click", async () => {
@@ -69,7 +96,7 @@ selectAllButton.addEventListener("click", () => {
 	output.select();
 });
 
-function convertBmpToKorgCode(bytes, inverted) {
+function convertBmpToKorgCode(bytes, inverted, pluginName) {
 	const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
 	const need = (offset, length) => {
 		if (offset < 0 || offset + length > bytes.length)
@@ -144,7 +171,7 @@ function convertBmpToKorgCode(bytes, inverted) {
 		.map((_, i) => `  korg.display.bitmap(bitmap${i}, 0, ${i * 8}, 128);`)
 		.join("\n");
 	return [
-		'korg.app("BlechBits", "TOOLS");',
+		`korg.app("${pluginName}", "TOOLS");`,
 		"",
 		...arrays,
 		"",
