@@ -1,29 +1,51 @@
 {
-  "name": "blechbits",
-  "version": "1.0.0",
-  "description": "BlechBits BMP to BLECHTRIBE plugin compiler",
-  "main": "main.js",
-  "author": "Acey",
-  "scripts": {
-    "start": "electron .",
-    "build:win": "electron-builder --win portable"
-  },
-  "devDependencies": {
-    "electron": "^37.2.0",
-    "electron-builder": "^26.0.12"
-  },
-  "build": {
-    "appId": "de.zentryx.bitviewconverter",
-    "productName": "BlechBits",
-    "asar": true,
-    "win": {
-      "icon": "assets/icon.ico",
-      "target": [
-        "portable"
-      ]
-    },
-    "directories": {
-      "output": "dist"
-    }
-  }
+	"name": "blechbits",
+	"version": "1.1.0",
+	"description": "BlechBits BMP to BLECHTRIBE plugin compiler",
+	"main": "main.js",
+	"author": "Acey",
+	"scripts": {
+		"start": "electron .",
+		"build:win": "electron-builder --win nsis portable",
+		"build:win:installer": "electron-builder --win nsis",
+		"build:win:portable": "electron-builder --win portable"
+	},
+	"devDependencies": {
+		"electron": "^37.2.0",
+		"electron-builder": "^26.0.12"
+	},
+	"build": {
+		"appId": "de.acey.blechbits",
+		"productName": "BlechBits",
+		"asar": true,
+		"win": {
+			"icon": "assets/icon.ico",
+			"target": [
+				{
+					"target": "nsis",
+					"arch": [
+						"x64"
+					]
+				},
+				{
+					"target": "portable",
+					"arch": [
+						"x64"
+					]
+				}
+			]
+		},
+		"directories": {
+			"output": "dist"
+		},
+		"nsis": {
+			"oneClick": false,
+			"perMachine": false,
+			"allowToChangeInstallationDirectory": true,
+			"createDesktopShortcut": true,
+			"createStartMenuShortcut": true,
+			"shortcutName": "BlechBits",
+			"uninstallDisplayName": "BlechBits"
+		}
+	}
 }
