@@ -1,5 +1,3 @@
-const fileInput = document.getElementById("bitmapFile");
-const filename = document.getElementById("filename");
 const invertInput = document.getElementById("invert");
 const convertButton = document.getElementById("convert");
 const copyButton = document.getElementById("copy");
@@ -8,27 +6,25 @@ const output = document.getElementById("output");
 const status = document.getElementById("status");
 let selectedFile = null;
 
-const { contextBridge, ipcRenderer } = require("electron");
+const bitmapInput = document.getElementById("bitmapFile");
+const fileName = document.getElementById("filename");
 
-contextBridge.exposeInMainWorld("electronAPI", {
-	openExternal: (url) => ipcRenderer.invoke("open-external", url),
-});
+bitmapInput.addEventListener("change", () => {
+	selectedFile =
+		bitmapInput.files && bitmapInput.files.length ? bitmapInput.files[0] : null;
 
-document.querySelectorAll("[data-external-link]").forEach((link) => {
-	link.addEventListener("click", (event) => {
-		event.preventDefault();
-		window.electronAPI.openExternal(link.href);
-	});
-});
-
-fileInput.addEventListener("change", () => {
-	selectedFile = fileInput.files?.[0] ?? null;
-	filename.textContent = selectedFile
+	fileName.textContent = selectedFile
 		? selectedFile.name
 		: "Keine Datei ausgewählt";
+
 	convertButton.disabled = !selectedFile;
-	status.textContent = "";
+	output.value = "";
+	copyButton.disabled = true;
+	selectAllButton.disabled = true;
 	status.classList.remove("error");
+	status.textContent = selectedFile
+		? "Datei ausgewählt. Du kannst sie jetzt konvertieren."
+		: "";
 });
 
 convertButton.addEventListener("click", async () => {
