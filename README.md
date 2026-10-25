@@ -41,7 +41,7 @@ Viel Spaß beim Ab-Blechen
 4. BlechBits starten:
 
    ```bash
-   npm start
+   npm run start
    ```
 
 ### Windows-Build
