@@ -12,7 +12,13 @@ Ein Tool zur Konvertierung von Bitmap dateien in Arrays und Erstellung von BLECH
 
 ## Installation
 
-Ladet euch das neuste Release [HIER](https://github.com/lb-acey/blechbits/releases/latest) runter. Startet die .exe und fertig.
+Ab v.1.0.1 gibt es eine Portable sowie eine Installierbare Version.
+Das ganze ist durch den Suffix "-Portable" und "-Setup" erkennbar.
+
+Die Portable Version ladet ihr runter, öffnet sie und fertig. Bei jeder Nutzung müsst ihr dann diese .exe Datei öffnen.
+Die Installer Version ist für die Jenigen gut, die öfters Bitmaps zu Blechtribe Plugins umwandeln wollen. Dann ist BlechBits auf eurem PC installiert, bis ihr es Deinstalliert.
+
+
 Viel Spaß beim Ab-Blechen
 
 ## Von Quellcode Starten
