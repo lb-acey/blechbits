@@ -1,6 +1,6 @@
 {
 	"name": "blechbits",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "BlechBits BMP to BLECHTRIBE plugin compiler",
 	"main": "main.js",
 	"author": "Acey",
