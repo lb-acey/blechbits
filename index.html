@@ -5,6 +5,17 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>BlechBits BMP Converter</title>
 		<style>
+			html,
+			body {
+				scrollbar-width: none;
+				-ms-overflow-style: none;
+			}
+
+			html::-webkit-scrollbar,
+			body::-webkit-scrollbar {
+				display: none;
+			}
+
 			:root {
 				color-scheme: dark;
 				--bg: #10131a;
@@ -64,10 +75,6 @@
 			input[type="file"] {
 				max-width: 100%;
 				color: var(--muted);
-			}
-			.filename {
-				color: var(--muted);
-				overflow-wrap: anywhere;
 			}
 			.options {
 				display: flex;
@@ -221,20 +228,88 @@
 					font-size: 12px;
 				}
 			}
+
+			.code-editor {
+				display: flex;
+				width: 100%;
+				min-height: 330px;
+				overflow: hidden;
+				border: 1px solid var(--line);
+				border-radius: 10px;
+				background: #0b0e14;
+			}
+
+			#lineNumbers {
+				flex-shrink: 0;
+				width: 45px;
+				margin: 0;
+				padding: 14px 10px;
+				overflow: hidden;
+				color: #667085;
+				background: #11151e;
+				text-align: right;
+				font:
+					12px/1.55 Consolas,
+					"Courier New",
+					monospace;
+				user-select: none;
+			}
+
+			.code-editor textarea {
+				flex: 1;
+				width: 0;
+				min-height: 330px;
+				border: 0;
+				border-radius: 0;
+				resize: vertical;
+				white-space: pre;
+				overflow: auto;
+			}
+
+			.code-editor:focus-within {
+				border-color: var(--accent);
+			}
+
+			#updateNotice {
+				position: fixed;
+				right: 20px;
+				bottom: 20px;
+				z-index: 1000;
+				max-width: 360px;
+				padding: 18px;
+				border: 1px solid var(--line);
+				border-radius: 12px;
+				background: #171c26;
+				color: white;
+				box-shadow: 0 8px 30px #0005;
+			}
+
+			#updateNotice:not([hidden]) {
+				display: grid;
+				gap: 10px;
+			}
 		</style>
 	</head>
 	<body>
 		<main>
+			<div id="updateNotice" hidden>
+				<strong>Neue BlechBits-Version verfügbar!</strong>
+				<span id="updateVersion"></span>
+				<button id="openRelease">Release ansehen</button>
+				<button id="dismissUpdate">Später</button>
+			</div>
 			<header>
 				<h1>BlechBits <span style="color: var(--accent2)">Converter</span></h1>
-				<p>BMP-Bitmaps in Korg-Plugin-Code umwandeln und als fertige .blech-Datei exportieren.</p>
+				<p>
+					BMP-Bitmaps in Korg-Plugin-Code umwandeln und als fertige .blech-Datei
+					exportieren.
+				</p>
 			</header>
 
 			<section class="panel">
 				<h2>1. Bitmap auswählen</h2>
 				<div class="upload">
 					<input id="bitmapFile" type="file" accept=".bmp,image/bmp" />
-					<span class="filename" id="filename">Keine Datei ausgewählt</span>
 				</div>
 				<p class="hint">
 					Erwartet wird eine 128 × 64 Pixel große BMP-Datei mit 1 Bit Farbtiefe.
@@ -246,8 +321,25 @@
 			<section class="panel">
 				<h2>2. Plugin-Name</h2>
 				<label for="pluginName">Name in korg.app(...):</label>
-				<input id="pluginName" type="text" value="BlechBits" maxlength="15" pattern="[A-Za-z0-9_]{1,15}" style="width:100%; margin-top:8px; padding:10px; border:1px solid var(--line); border-radius:8px; background:#0b0e14; color:var(--text);" />
-				<p class="hint">1–15 ASCII-Zeichen: Buchstaben, Zahlen und Unterstriche.</p>
+				<input
+					id="pluginName"
+					type="text"
+					value="BlechBits"
+					maxlength="15"
+					pattern="[A-Za-z0-9_]{1,15}"
+					style="
+						width: 100%;
+						margin-top: 8px;
+						padding: 10px;
+						border: 1px solid var(--line);
+						border-radius: 8px;
+						background: #0b0e14;
+						color: var(--text);
+					"
+				/>
+				<p class="hint">
+					1–15 ASCII-Zeichen: Buchstaben, Zahlen und Unterstriche.
+				</p>
 			</section>
 
 			<section class="panel">
@@ -265,15 +357,21 @@
 					<h2 style="margin: 0">3. Generierter JavaScript-Code</h2>
 					<div class="actions">
 						<button id="copy" class="secondary" disabled>Code kopieren</button>
-						<button id="selectAll" class="secondary" disabled>Alles markieren</button>
+						<button id="selectAll" class="secondary" disabled>
+							Alles markieren
+						</button>
 						<button id="exportBlech" disabled>Als .blech exportieren</button>
 					</div>
 				</div>
-				<textarea
-					id="output"
-					spellcheck="false"
-					placeholder="Hier erscheint nach der Konvertierung dein Code …"
-				></textarea>
+				<div class="code-editor">
+					<pre id="lineNumbers" aria-hidden="true">1</pre>
+					<textarea
+						id="output"
+						spellcheck="false"
+						placeholder="Hier erscheint nach der Konvertierung dein Code …"
+					></textarea>
+				</div>
+
 				<div id="status" class="status" role="status"></div>
 			</section>
 		</main>

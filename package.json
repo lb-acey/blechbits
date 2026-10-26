@@ -1,6 +1,6 @@
 {
 	"name": "blechbits",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "BlechBits BMP to BLECHTRIBE plugin compiler",
 	"main": "main.js",
 	"author": "Acey",
@@ -45,7 +45,11 @@
 			"createDesktopShortcut": true,
 			"createStartMenuShortcut": true,
 			"shortcutName": "BlechBits",
-			"uninstallDisplayName": "BlechBits"
+			"uninstallDisplayName": "BlechBits",
+			"artifactName": "BlechBits-${version}-Setup.${ext}"
+		},
+		"portable": {
+			"artifactName": "BlechBits-${version}-Portable.${ext}"
 		}
 	}
 }
