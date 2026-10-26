@@ -7,17 +7,62 @@ const exportBlechButton = document.getElementById("exportBlech");
 const output = document.getElementById("output");
 const status = document.getElementById("status");
 let selectedFile = null;
+const updateNotice = document.getElementById("updateNotice");
+const updateVersion = document.getElementById("updateVersion");
+const openRelease = document.getElementById("openRelease");
+const dismissUpdate = document.getElementById("dismissUpdate");
 
 const bitmapInput = document.getElementById("bitmapFile");
-const fileName = document.getElementById("filename");
+
+const lineNumbers = document.getElementById("lineNumbers");
+
+function updateLineNumbers() {
+	const lines = output.value.split("\n").length;
+
+	lineNumbers.textContent = Array.from({ length: lines }, (_, i) => i + 1).join(
+		"\n",
+	);
+}
+
+output.addEventListener("input", updateLineNumbers);
+output.addEventListener("scroll", () => {
+	lineNumbers.scrollTop = output.scrollTop;
+});
+
+updateLineNumbers();
+
+let releaseUrl = "";
+
+async function checkBlechBitsUpdate() {
+	try {
+		const update = await window.blechBits.checkForUpdates();
+
+		if (!update) return;
+
+		updateVersion.textContent = `Installiert: ${update.currentVersion} · Neu: ${update.latestVersion}`;
+
+		releaseUrl = update.releaseUrl;
+		updateNotice.hidden = false;
+	} catch (error) {
+		console.warn("Update-Prüfung fehlgeschlagen:", error);
+	}
+}
+
+openRelease.addEventListener("click", () => {
+	if (releaseUrl) {
+		window.blechBits.openExternal(releaseUrl);
+	}
+});
+
+dismissUpdate.addEventListener("click", () => {
+	updateNotice.hidden = true;
+});
+
+checkBlechBitsUpdate();
 
 bitmapInput.addEventListener("change", () => {
 	selectedFile =
 		bitmapInput.files && bitmapInput.files.length ? bitmapInput.files[0] : null;
-
-	fileName.textContent = selectedFile
-		? selectedFile.name
-		: "Keine Datei ausgewählt";
 
 	convertButton.disabled = !selectedFile;
 	output.value = "";
@@ -36,11 +81,13 @@ convertButton.addEventListener("click", async () => {
 		const buffer = await selectedFile.arrayBuffer();
 		const pluginName = pluginNameInput.value.trim();
 		if (!/^[A-Za-z0-9_]{1,15}$/.test(pluginName)) {
-			throw new Error("Der Plugin-Name muss 1–15 Zeichen lang sein und darf nur ASCII-Buchstaben, Zahlen und Unterstriche enthalten.");
+			throw new Error(
+				"Der Plugin-Name muss 1–15 Zeichen lang sein und darf nur ASCII-Buchstaben, Zahlen und Unterstriche enthalten.",
+			);
 		}
 		const code = convertBmpToKorgCode(
 			new Uint8Array(buffer),
-			invertInput.checked,
+			!invertInput.checked,
 			pluginName,
 		);
 		output.value = code;
@@ -61,20 +108,23 @@ convertButton.addEventListener("click", async () => {
 });
 
 exportBlechButton.addEventListener("click", async () => {
-  if (!output.value.trim()) return;
-  try {
-    const pluginName = pluginNameInput.value.trim();
-    const result = await window.blechBits.compileAndSave(output.value, pluginName);
-    if (result.canceled) {
-      status.textContent = "Export abgebrochen.";
-      return;
-    }
-    status.classList.remove("error");
-    status.textContent = `Fertige .blech-Datei gespeichert (${result.bytes} Bytes).`;
-  } catch (error) {
-    status.classList.add("error");
-    status.textContent = error.message || "Kompilierung fehlgeschlagen.";
-  }
+	if (!output.value.trim()) return;
+	try {
+		const pluginName = pluginNameInput.value.trim();
+		const result = await window.blechBits.compileAndSave(
+			output.value,
+			pluginName,
+		);
+		if (result.canceled) {
+			status.textContent = "Export abgebrochen.";
+			return;
+		}
+		status.classList.remove("error");
+		status.textContent = `Fertige .blech-Datei gespeichert (${result.bytes} Bytes).`;
+	} catch (error) {
+		status.classList.add("error");
+		status.textContent = error.message || "Kompilierung fehlgeschlagen.";
+	}
 });
 
 copyButton.addEventListener("click", async () => {
