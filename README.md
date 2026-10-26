@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/icon.png" alt="BlechBits" width="250" alt="BLECHBITS LOGO">
+</p>
+
 # BlechBits
 
 Ein Tool zur Konvertierung von Bitmap dateien in Arrays und Erstellung von BLECHTRIBE-Plugins. BlechBits erweitert den bestehenden Workflow um die Möglichkeit, Plugin-Namen anzupassen und fertige `.blech`-Dateien zu erstellen.
@@ -88,4 +92,4 @@ AGPL-3.0, [`LICENSE`](LICENSE). Sonstige hinweise stehen in [`NOTICE`](NOTICE)
 
 ---
 
-**BlechBits** – BMP-Konvertierung und BLECHTRIBE-Plugin-Erstellung in einem Tool.
+**BlechBits** – BMP zu .BLECH
