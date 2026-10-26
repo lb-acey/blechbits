@@ -283,7 +283,6 @@ function buildPluginCode(bitmaps, pluginName) {
 		...arrays,
 		"",
 		...screenFunctions,
-<<<<<<< HEAD
 		"",
 		"let currentScreen = 0;",
 		"",
@@ -294,19 +293,6 @@ function buildPluginCode(bitmaps, pluginName) {
 		'  korg.display.text("das Bild zu wechseln.", 2,30);',
 		"  korg.display.rect(0, 50, 128, 2);",
 		'  korg.display.text("by Acey", 42, 55);',
-		"});",
-=======
->>>>>>> 963432d5d2c120c86758bd545a1b46c00527a610
-		"",
-		"let currentScreen = 0;",
-		"",
-		'korg.onEvent("ready", () => {',
-		'  korg.display.text("BlechBits", 40, 2);',
-		"  korg.display.rect(0, 12, 128, 2);",
-		'  korg.display.text("Drehe am Encoder um", 2, 20);',
-		'  korg.display.text("das Bild zu wechseln.", 2,30);',
-		"  korg.display.rect(0, 50, 128, 2);",
-		'  korg.display.text("by Acey", 10, 55);',
 		"});",
 		"",
 		'korg.onEvent("encoder", (index, delta) => {',
