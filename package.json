@@ -45,7 +45,11 @@
 			"createDesktopShortcut": true,
 			"createStartMenuShortcut": true,
 			"shortcutName": "BlechBits",
-			"uninstallDisplayName": "BlechBits"
+			"uninstallDisplayName": "BlechBits",
+			"artifactName": "BlechBits-${version}-Setup.${ext}"
+		},
+		"portable": {
+			"artifactName": "BlechBits-${version}-Portable.${ext}"
 		}
 	}
 }
