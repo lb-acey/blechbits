@@ -46,7 +46,8 @@
 			"createStartMenuShortcut": true,
 			"shortcutName": "BlechBits",
 			"uninstallDisplayName": "BlechBits",
-			"artifactName": "BlechBits-${version}-Setup.${ext}"
+			"artifactName": "BlechBits-${version}-Setup.${ext}",
+			"installerIcon": "assets/icon.ico"
 		},
 		"portable": {
 			"artifactName": "BlechBits-${version}-Portable.${ext}"
