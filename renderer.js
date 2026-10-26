@@ -6,7 +6,7 @@ const selectAllButton = document.getElementById("selectAll");
 const exportBlechButton = document.getElementById("exportBlech");
 const output = document.getElementById("output");
 const status = document.getElementById("status");
-let selectedFile = null;
+let selectedFiles = [];
 const updateNotice = document.getElementById("updateNotice");
 const updateVersion = document.getElementById("updateVersion");
 const openRelease = document.getElementById("openRelease");
@@ -61,41 +61,44 @@ dismissUpdate.addEventListener("click", () => {
 checkBlechBitsUpdate();
 
 bitmapInput.addEventListener("change", () => {
-	selectedFile =
-		bitmapInput.files && bitmapInput.files.length ? bitmapInput.files[0] : null;
+	selectedFiles = Array.from(bitmapInput.files || []);
 
-	convertButton.disabled = !selectedFile;
+	convertButton.disabled = selectedFiles.length === 0;
 	output.value = "";
 	copyButton.disabled = true;
 	selectAllButton.disabled = true;
 	exportBlechButton.disabled = true;
 	status.classList.remove("error");
-	status.textContent = selectedFile
-		? "Datei ausgewählt. Du kannst sie jetzt konvertieren."
+	status.textContent = selectedFiles.length
+		? `${selectedFiles.length} Bitmap${selectedFiles.length === 1 ? "" : "s"} ausgewählt. Du kannst sie jetzt konvertieren.`
 		: "";
 });
 
 convertButton.addEventListener("click", async () => {
-	if (!selectedFile) return;
+	if (!selectedFiles.length) return;
 	try {
-		const buffer = await selectedFile.arrayBuffer();
 		const pluginName = pluginNameInput.value.trim();
 		if (!/^[A-Za-z0-9_]{1,15}$/.test(pluginName)) {
 			throw new Error(
 				"Der Plugin-Name muss 1–15 Zeichen lang sein und darf nur ASCII-Buchstaben, Zahlen und Unterstriche enthalten.",
 			);
 		}
-		const code = convertBmpToKorgCode(
-			new Uint8Array(buffer),
-			!invertInput.checked,
-			pluginName,
-		);
+
+		const bitmaps = [];
+		for (const file of selectedFiles) {
+			const buffer = await file.arrayBuffer();
+			bitmaps.push(
+				convertBmpToBitmapArrays(new Uint8Array(buffer), !invertInput.checked),
+			);
+		}
+
+		const code = buildPluginCode(bitmaps, pluginName);
 		output.value = code;
 		copyButton.disabled = false;
 		selectAllButton.disabled = false;
 		exportBlechButton.disabled = false;
 		status.classList.remove("error");
-		status.textContent = "Konvertierung erfolgreich.";
+		status.textContent = `${selectedFiles.length} Bitmap${selectedFiles.length === 1 ? "" : "s"} erfolgreich konvertiert.`;
 	} catch (error) {
 		output.value = "";
 		copyButton.disabled = true;
@@ -103,7 +106,7 @@ convertButton.addEventListener("click", async () => {
 		exportBlechButton.disabled = true;
 		status.classList.add("error");
 		status.textContent =
-			error.message || "Die Bitmap konnte nicht konvertiert werden.";
+			error.message || "Die Bitmap(s) konnten nicht konvertiert werden.";
 	}
 });
 
@@ -146,7 +149,7 @@ selectAllButton.addEventListener("click", () => {
 	output.select();
 });
 
-function convertBmpToKorgCode(bytes, inverted, pluginName) {
+function convertBmpToBitmapArrays(bytes, inverted) {
 	const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
 	const need = (offset, length) => {
 		if (offset < 0 || offset + length > bytes.length)
@@ -154,7 +157,9 @@ function convertBmpToKorgCode(bytes, inverted, pluginName) {
 	};
 	need(0, 54);
 	if (view.getUint16(0, true) !== 0x4d42)
-		throw new Error("Die ausgewählte Datei ist keine gültige BMP-Datei.");
+		throw new Error(
+			"Eine der ausgewählten Dateien ist keine gültige BMP-Datei.",
+		);
 
 	const pixelOffset = view.getUint32(10, true);
 	const dibSize = view.getUint32(14, true);
@@ -166,6 +171,7 @@ function convertBmpToKorgCode(bytes, inverted, pluginName) {
 	const planes = view.getUint16(26, true);
 	const bpp = view.getUint16(28, true);
 	const compression = view.getUint32(30, true);
+
 	if (width !== 128 || height !== 64)
 		throw new Error(
 			`Falsche Bildgröße: ${width} × ${height}. Benötigt wird 128 × 64 Pixel.`,
@@ -179,59 +185,130 @@ function convertBmpToKorgCode(bytes, inverted, pluginName) {
 	need(paletteOffset, 8);
 	const colorsUsed = view.getUint32(46, true);
 	if (colorsUsed > 2) throw new Error("Die BMP-Palette ist ungültig.");
+
 	const palette = [];
 	for (let i = 0; i < 2; i++) {
 		const p = paletteOffset + i * 4;
 		need(p, 4);
-		const blue = bytes[p],
-			green = bytes[p + 1],
-			red = bytes[p + 2];
+		const blue = bytes[p];
+		const green = bytes[p + 1];
+		const red = bytes[p + 2];
 		palette.push((red * 299 + green * 587 + blue * 114) / 1000 >= 128 ? 1 : 0);
 	}
 
 	const rowSize = Math.ceil(width / 32) * 4;
 	need(pixelOffset, rowSize * height);
+
 	const pixels = Array.from({ length: height }, () => new Array(width).fill(0));
+
 	for (let y = 0; y < height; y++) {
 		const bmpY = signedHeight > 0 ? height - 1 - y : y;
 		const rowStart = pixelOffset + bmpY * rowSize;
+
 		for (let x = 0; x < width; x++) {
 			const byte = bytes[rowStart + (x >> 3)];
 			const paletteIndex = (byte >> (7 - (x & 7))) & 1;
 			let pixel = palette[paletteIndex];
+
 			if (inverted) pixel = pixel ? 0 : 1;
 			pixels[y][x] = pixel;
 		}
 	}
 
 	const arrays = [];
+
 	for (let block = 0; block < 8; block++) {
 		const values = [];
+
 		for (let x = 0; x < width; x++) {
 			let value = 0;
+
 			for (let bit = 0; bit < 8; bit++) {
 				value |= pixels[block * 8 + bit][x] << bit;
 			}
+
 			values.push(value);
 		}
-		arrays.push(`const bitmap${block} = [${values.join(", ")}];`);
+
+		arrays.push(values);
 	}
 
-	const drawLines = arrays
-		.map((_, i) => `  korg.display.bitmap(bitmap${i}, 0, ${i * 8}, 128);`)
-		.join("\n");
+	return arrays;
+}
+
+function buildPluginCode(bitmaps, pluginName) {
+	const arrays = [];
+	let bitmapNumber = 0;
+
+	for (const bitmap of bitmaps) {
+		for (const values of bitmap) {
+			arrays.push(`const bitmap${bitmapNumber} = [${values.join(", ")}];`);
+			bitmapNumber++;
+		}
+	}
+
+	const screenFunctions = [];
+
+	for (let screen = 0; screen < bitmaps.length; screen++) {
+		const first = screen * 8;
+		const drawLines = [];
+
+		for (let row = 0; row < 8; row++) {
+			drawLines.push(
+				`  korg.display.bitmap(bitmap${first + row}, 0, ${row * 8}, 128);`,
+			);
+		}
+
+		screenFunctions.push(
+			[
+				`function showBitmap${screen}() {`,
+				"  korg.display.clear();",
+				...drawLines,
+				"}",
+			].join("\n"),
+		);
+	}
+
+	const screenCalls = [];
+
+	for (let screen = 0; screen < bitmaps.length; screen++) {
+		screenCalls.push(
+			`  if (currentScreen === ${screen}) showBitmap${screen}();`,
+		);
+	}
+
 	return [
 		`korg.app("${pluginName}", "TOOLS");`,
 		"",
 		...arrays,
 		"",
-		"function show() {",
-		"  korg.display.clear();",
-		drawLines,
-		"}",
+		...screenFunctions,
 		"",
-		'korg.onEvent("open", () => {',
-		"  show();",
+		"let currentScreen = 0;",
+		"",
+		'korg.onEvent("ready", () => {',
+		'  korg.display.text("BlechBits", 40, 2);',
+		"  korg.display.rect(0, 12, 128, 2);",
+		'  korg.display.text("Drehe am Encoder um", 2, 20);',
+		'  korg.display.text("das Bild zu wechseln.", 2,30);',
+		"  korg.display.rect(0, 50, 128, 2);",
+		'  korg.display.text("by Acey", 10, 55);',
+		"});",
+		"",
+		'korg.onEvent("encoder", (index, delta) => {',
+		"  if (delta > 0) {",
+		"    currentScreen++;",
+		`    if (currentScreen >= ${bitmaps.length}) currentScreen = 0;`,
+		"  }",
+		"",
+		"  if (delta < 0) {",
+		"    currentScreen--;",
+		"    if (currentScreen < 0) {",
+		`      currentScreen = ${bitmaps.length - 1};`,
+		"    }",
+		"  }",
+		"",
+		...screenCalls,
 		"});",
 		"",
 	].join("\n");
